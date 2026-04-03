@@ -31,17 +31,23 @@ export type Database = {
       }
       Tasks: {
         Row: {
+          created_at: string
           id: string
+          status: Database["public"]["Enums"]["task_status"]
           title: string
           user_id: string
         }
         Insert: {
+          created_at?: string
           id?: string
+          status?: Database["public"]["Enums"]["task_status"]
           title: string
           user_id: string
         }
         Update: {
+          created_at?: string
           id?: string
+          status?: Database["public"]["Enums"]["task_status"]
           title?: string
           user_id?: string
         }
@@ -98,6 +104,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      task_status: "todo" | "in_progress" | "done"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -226,6 +233,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      task_status: ["todo", "in_progress", "done"],
     },
   },
 } as const
