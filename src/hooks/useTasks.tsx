@@ -11,6 +11,7 @@ export interface Task {
   user_id: string;
   status: TaskStatus;
   created_at: string;
+  xp_reward: number | null;
 }
 
 export function useTasks() {
