@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          current_level: number | null
+          daily_streak: number | null
+          full_name: string | null
+          id: string
+          total_xp: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          current_level?: number | null
+          daily_streak?: number | null
+          full_name?: string | null
+          id: string
+          total_xp?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          current_level?: number | null
+          daily_streak?: number | null
+          full_name?: string | null
+          id?: string
+          total_xp?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       Roles: {
         Row: {
           id: string
@@ -29,6 +77,41 @@ export type Database = {
         }
         Relationships: []
       }
+      submissions: {
+        Row: {
+          created_at: string | null
+          file_url: string | null
+          id: string
+          status: string | null
+          task_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_url?: string | null
+          id?: string
+          status?: string | null
+          task_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          file_url?: string | null
+          id?: string
+          status?: string | null
+          task_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submissions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "Tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       Tasks: {
         Row: {
           created_at: string
@@ -36,6 +119,7 @@ export type Database = {
           status: Database["public"]["Enums"]["task_status"]
           title: string
           user_id: string
+          xp_reward: number | null
         }
         Insert: {
           created_at?: string
@@ -43,6 +127,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["task_status"]
           title: string
           user_id: string
+          xp_reward?: number | null
         }
         Update: {
           created_at?: string
@@ -50,6 +135,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["task_status"]
           title?: string
           user_id?: string
+          xp_reward?: number | null
         }
         Relationships: []
       }
