@@ -75,7 +75,7 @@ export function useTasks() {
     // When marking a task as done, create a submission and award XP
     if (updates.status === "done" && user) {
       const task = tasks.find((t) => t.id === id);
-      const xpReward = (task as any)?.xp_reward ?? 50;
+      const xpReward = task?.xp_reward ?? 50;
 
       // Insert submission
       await supabase.from("submissions").insert({
