@@ -67,8 +67,38 @@ export function useTasks() {
     const { error } = await supabase.from("Tasks").update(updates).eq("id", id);
     if (error) {
       toast.error(error.message);
-    } else {
-      toast.success("Task updated");
+      return;
+    }
+    toast.success("Task updated");
+
+    // When marking a task as done, create a submission and award XP
+    if (updates.status === "done" && user) {
+      const task = tasks.find((t) => t.id === id);
+      const xpReward = (task as any)?.xp_reward ?? 50;
+
+      // Insert submission
+      await supabase.from("submissions").insert({
+        task_id: id,
+        user_id: user.id,
+        status: "completed",
+      });
+
+      // Award XP to profile
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("total_xp, current_level")
+        .eq("id", user.id)
+        .single();
+
+      if (profile) {
+        const newXp = (profile.total_xp ?? 0) + xpReward;
+        const newLevel = Math.floor(newXp / 500) + 1;
+        await supabase.from("profiles").update({
+          total_xp: newXp,
+          current_level: newLevel,
+        }).eq("id", user.id);
+        toast.success(`+${xpReward} XP earned!`);
+      }
     }
   };
 
