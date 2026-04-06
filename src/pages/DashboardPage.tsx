@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
 import { PieChart, Pie, Cell } from "recharts";
-import { ListTodo, Clock, CheckCircle2, Star, Zap, Flame, PieChart as PieChartIcon } from "lucide-react";
+import { ListTodo, Clock, CheckCircle2, Star, Zap, Flame, PieChart as PieChartIcon, CalendarClock } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 const XP_PER_LEVEL = 500;
@@ -13,6 +13,13 @@ const pieChartConfig = {
   completed: { label: "Completed", color: "hsl(var(--success))" },
   pending: { label: "Pending", color: "hsl(var(--primary))" },
 };
+
+function getStartOfWeek(): Date {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - d.getDay());
+  return d;
+}
 
 const DashboardPage = () => {
   const { tasks, loading } = useTasks();
@@ -23,6 +30,12 @@ const DashboardPage = () => {
   const pending = tasks.filter((t) => t.status !== "done").length;
   const inProgress = tasks.filter((t) => t.status === "in_progress").length;
   const todo = tasks.filter((t) => t.status === "todo").length;
+
+  // Tasks created this week that are not done
+  const weekStart = getStartOfWeek();
+  const dueThisWeek = tasks.filter(
+    (t) => t.status !== "done" && new Date(t.created_at) >= weekStart
+  ).length;
 
   const pieData = [
     { name: "completed", value: completed },
@@ -52,6 +65,18 @@ const DashboardPage = () => {
           <span className="text-primary font-semibold">{roleLabel}</span>
         </span>
       </div>
+
+      {/* "Due this week" widget */}
+      <Card className="border-primary/30 bg-primary/5" data-testid="widget-due-this-week">
+        <CardContent className="p-4 flex items-center gap-3">
+          <CalendarClock size={24} className="text-primary shrink-0" />
+          <p className="text-sm font-medium text-foreground">
+            You have{" "}
+            <span className="text-primary font-bold text-base">{dueThisWeek}</span>{" "}
+            {dueThisWeek === 1 ? "task" : "tasks"} due this week
+          </p>
+        </CardContent>
+      </Card>
 
       {/* XP & Level Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

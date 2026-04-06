@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useNotifications } from "@/hooks/useNotifications";
 import { toast } from "sonner";
 
 export type TaskStatus = "todo" | "in_progress" | "done";
@@ -15,7 +16,8 @@ export interface Task {
 }
 
 export function useTasks() {
-  const { user, role, canEditAllTasks } = useAuth();
+  const { user, canEditAllTasks } = useAuth();
+  const { addNotification } = useNotifications();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -35,21 +37,16 @@ export function useTasks() {
   useEffect(() => {
     fetchTasks();
 
-    // Real-time subscription
     const channel = supabase
       .channel("tasks-realtime")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "Tasks" },
-        () => {
-          fetchTasks();
-        }
+        () => { fetchTasks(); }
       )
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [fetchTasks]);
 
   const addTask = async (title: string) => {
@@ -61,6 +58,7 @@ export function useTasks() {
       toast.error(error.message);
     } else {
       toast.success("Task added!");
+      addNotification(`New task added: "${title.trim()}"`);
     }
   };
 
@@ -72,19 +70,16 @@ export function useTasks() {
     }
     toast.success("Task updated");
 
-    // When marking a task as done, create a submission and award XP
     if (updates.status === "done" && user) {
       const task = tasks.find((t) => t.id === id);
       const xpReward = task?.xp_reward ?? 50;
 
-      // Insert submission
       await supabase.from("submissions").insert({
         task_id: id,
         user_id: user.id,
         status: "completed",
       });
 
-      // Award XP to profile
       const { data: profile } = await supabase
         .from("profiles")
         .select("total_xp, current_level")
@@ -112,10 +107,8 @@ export function useTasks() {
     }
   };
 
-  // Admins (canEditAllTasks = true) can modify any task.
-  // Members can only modify tasks they created.
   const canModify = (task: Task) =>
     canEditAllTasks || task.user_id === user?.id;
 
-  return { tasks, loading, addTask, updateTask, deleteTask, canModify, role, canEditAllTasks };
+  return { tasks, loading, addTask, updateTask, deleteTask, canModify, canEditAllTasks };
 }

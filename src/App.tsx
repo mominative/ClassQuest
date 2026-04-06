@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { NotificationsProvider } from "@/hooks/useNotifications";
 import { AppLayout } from "@/components/AppLayout";
 import Auth from "./pages/Auth";
 import DashboardPage from "./pages/DashboardPage";
@@ -34,13 +35,15 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
-            <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-            <Route path="/tasks" element={<ProtectedRoute><TasksPage /></ProtectedRoute>} />
-            <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <NotificationsProvider>
+            <Routes>
+              <Route path="/auth" element={<PublicRoute><Auth /></PublicRoute>} />
+              <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+              <Route path="/tasks" element={<ProtectedRoute><TasksPage /></ProtectedRoute>} />
+              <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </NotificationsProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
