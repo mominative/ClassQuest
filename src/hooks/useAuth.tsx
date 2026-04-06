@@ -2,6 +2,9 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
+// ─── Hard-coded admin email ───────────────────────────────────────────────────
+const ADMIN_EMAIL = "teacher@test.com";
+
 type AppRole = "admin" | "user";
 
 interface AuthContextType {
@@ -24,63 +27,29 @@ const AuthContext = createContext<AuthContextType>({
   signOut: async () => {},
 });
 
+/** Derive role directly from email — no database call needed. */
+const roleFromEmail = (email: string | undefined): AppRole =>
+  email === ADMIN_EMAIL ? "admin" : "user";
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchRole = async (userId: string) => {
-    // Query the profiles table for the user's role field (teacher | student)
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", userId)
-      .single();
-
-    if (error || !data) {
-      // Fall back to querying user_roles table if profiles.role is missing
-      const { data: roleRow } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .single();
-
-      const rawRole = (roleRow as { role?: string } | null)?.role ?? "user";
-      setRole(rawRole === "admin" ? "admin" : "user");
-      return;
-    }
-
-    // Map teacher → admin, student → user
-    const raw = (data as { role?: string }).role ?? "user";
-    if (raw === "teacher") {
-      setRole("admin");
-    } else if (raw === "student") {
-      setRole("user");
-    } else {
-      // handle legacy values ('admin' / 'user') transparently
-      setRole(raw === "admin" ? "admin" : "user");
-    }
-  };
-
   useEffect(() => {
+    // Listen for auth state changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      if (session?.user) {
-        // setTimeout avoids Supabase internal deadlock on auth state change
-        setTimeout(() => fetchRole(session.user.id), 0);
-      } else {
-        setRole(null);
-      }
+      setRole(session?.user ? roleFromEmail(session.user.email) : null);
       setLoading(false);
     });
 
+    // Hydrate on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      if (session?.user) {
-        fetchRole(session.user.id);
-      }
+      setRole(session?.user ? roleFromEmail(session.user.email) : null);
       setLoading(false);
     });
 
