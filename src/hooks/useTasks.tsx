@@ -15,7 +15,7 @@ export interface Task {
 }
 
 export function useTasks() {
-  const { user, role } = useAuth();
+  const { user, role, canEditAllTasks } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -112,7 +112,10 @@ export function useTasks() {
     }
   };
 
-  const canModify = (task: Task) => role === "admin" || task.user_id === user?.id;
+  // Admins (canEditAllTasks = true) can modify any task.
+  // Members can only modify tasks they created.
+  const canModify = (task: Task) =>
+    canEditAllTasks || task.user_id === user?.id;
 
-  return { tasks, loading, addTask, updateTask, deleteTask, canModify, role };
+  return { tasks, loading, addTask, updateTask, deleteTask, canModify, role, canEditAllTasks };
 }

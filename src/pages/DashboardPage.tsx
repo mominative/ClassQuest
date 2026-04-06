@@ -17,7 +17,7 @@ const pieChartConfig = {
 const DashboardPage = () => {
   const { tasks, loading } = useTasks();
   const { profile, loading: profileLoading } = useProfile();
-  const { role } = useAuth();
+  const { roleLabel } = useAuth();
 
   const completed = tasks.filter((t) => t.status === "done").length;
   const pending = tasks.filter((t) => t.status !== "done").length;
@@ -34,8 +34,6 @@ const DashboardPage = () => {
   const streak = profile?.daily_streak ?? 0;
   const xpInLevel = totalXp % XP_PER_LEVEL;
   const xpProgress = (xpInLevel / XP_PER_LEVEL) * 100;
-
-  const roleLabel = role === "admin" ? "Teacher" : "Student";
 
   if (loading || profileLoading) {
     return (

@@ -20,7 +20,7 @@ const statusVariant: Record<TaskStatus, "default" | "secondary" | "destructive" 
 };
 
 const TasksPage = () => {
-  const { tasks, loading, addTask, updateTask, deleteTask, canModify, role } = useTasks();
+  const { tasks, loading, addTask, updateTask, deleteTask, canModify, canEditAllTasks } = useTasks();
   const [newTask, setNewTask] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
@@ -56,7 +56,7 @@ const TasksPage = () => {
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-4">
       <h1 className="text-2xl font-extrabold text-foreground">
-        {role === "admin" ? "All Tasks" : "My Tasks"}
+        {canEditAllTasks ? "All Tasks (Admin)" : "My Tasks"}
       </h1>
 
       {/* Add task */}
