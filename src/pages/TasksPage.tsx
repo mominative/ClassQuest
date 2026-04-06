@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTasks, TaskStatus } from "@/hooks/useTasks";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Edit2, Check, X, Search, ListTodo } from "lucide-react";
+import { Plus, Trash2, Edit2, Check, X, Search, ListTodo, ArrowUpDown } from "lucide-react";
 
 const statusLabels: Record<TaskStatus, string> = {
   todo: "Todo",
@@ -26,6 +26,7 @@ const TasksPage = () => {
   const [editTitle, setEditTitle] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [search, setSearch] = useState("");
+  const [sortDate, setSortDate] = useState<"newest" | "oldest">("newest");
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,11 +40,18 @@ const TasksPage = () => {
     setEditingId(null);
   };
 
-  const filtered = tasks.filter((t) => {
-    if (filterStatus !== "all" && t.status !== filterStatus) return false;
-    if (search && !t.title.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  });
+  const filtered = useMemo(() => {
+    const list = tasks.filter((t) => {
+      if (filterStatus !== "all" && t.status !== filterStatus) return false;
+      if (search && !t.title.toLowerCase().includes(search.toLowerCase())) return false;
+      return true;
+    });
+    list.sort((a, b) => {
+      const diff = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      return sortDate === "newest" ? -diff : diff;
+    });
+    return list;
+  }, [tasks, filterStatus, search, sortDate]);
 
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-4">
@@ -77,10 +85,11 @@ const TasksPage = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
+            data-testid="input-search"
           />
         </div>
         <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-full sm:w-[160px]">
+          <SelectTrigger className="w-full sm:w-[140px]" data-testid="select-filter-status">
             <SelectValue placeholder="Filter status" />
           </SelectTrigger>
           <SelectContent>
@@ -88,6 +97,16 @@ const TasksPage = () => {
             <SelectItem value="todo">Todo</SelectItem>
             <SelectItem value="in_progress">In Progress</SelectItem>
             <SelectItem value="done">Done</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={sortDate} onValueChange={(v) => setSortDate(v as "newest" | "oldest")}>
+          <SelectTrigger className="w-full sm:w-[140px]" data-testid="select-sort-date">
+            <ArrowUpDown size={14} className="mr-1 text-muted-foreground shrink-0" />
+            <SelectValue placeholder="Sort by date" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="newest">Newest First</SelectItem>
+            <SelectItem value="oldest">Oldest First</SelectItem>
           </SelectContent>
         </Select>
       </div>
