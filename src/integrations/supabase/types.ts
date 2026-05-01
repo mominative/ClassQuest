@@ -41,6 +41,7 @@ export type Database = {
           daily_streak: number | null
           full_name: string | null
           id: string
+          role: string | null
           total_xp: number | null
           updated_at: string | null
         }
@@ -49,6 +50,7 @@ export type Database = {
           daily_streak?: number | null
           full_name?: string | null
           id: string
+          role?: string | null
           total_xp?: number | null
           updated_at?: string | null
         }
@@ -57,6 +59,7 @@ export type Database = {
           daily_streak?: number | null
           full_name?: string | null
           id?: string
+          role?: string | null
           total_xp?: number | null
           updated_at?: string | null
         }
@@ -112,29 +115,67 @@ export type Database = {
           },
         ]
       }
+      Submissions: {
+        Row: {
+          created_at: string | null
+          id: string
+          student_id: string | null
+          submission_text: string | null
+          task_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          student_id?: string | null
+          submission_text?: string | null
+          task_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          student_id?: string | null
+          submission_text?: string | null
+          task_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Submissions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "Tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       Tasks: {
         Row: {
-          created_at: string
+          created_at: string | null
+          description: string | null
           id: string
-          status: Database["public"]["Enums"]["task_status"]
+          status: string | null
+          subject: string | null
           title: string
-          user_id: string
+          user_id: string | null
           xp_reward: number | null
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
+          description?: string | null
           id?: string
-          status?: Database["public"]["Enums"]["task_status"]
+          status?: string | null
+          subject?: string | null
           title: string
-          user_id: string
+          user_id?: string | null
           xp_reward?: number | null
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
+          description?: string | null
           id?: string
-          status?: Database["public"]["Enums"]["task_status"]
+          status?: string | null
+          subject?: string | null
           title?: string
-          user_id?: string
+          user_id?: string | null
           xp_reward?: number | null
         }
         Relationships: []
@@ -142,38 +183,28 @@ export type Database = {
       user_roles: {
         Row: {
           id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
+          role: string | null
+          user_id: string | null
         }
         Insert: {
           id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id: string
+          role?: string | null
+          user_id?: string | null
         }
         Update: {
           id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
+          role?: string | null
+          user_id?: string | null
         }
-        Relationships: []
-      }
-      Users: {
-        Row: {
-          id: string
-          name: string
-          role: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          role?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          role?: string
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_role_fkey"
+            columns: ["role"]
+            isOneToOne: false
+            referencedRelation: "Roles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
