@@ -2,16 +2,14 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-// ─── Hard-coded admin email ───────────────────────────────────────────────────
-const ADMIN_EMAIL = "teacher@test.com";
-
-type AppRole = "admin" | "user";
+export type AppRole = "teacher" | "student";
 
 interface AuthContextType {
   session: Session | null;
   user: User | null;
   role: AppRole | null;
-  roleLabel: "Admin" | "Member" | null;
+  roleLabel: "Teacher" | "Student" | null;
+  isTeacher: boolean;
   canEditAllTasks: boolean;
   loading: boolean;
   signOut: () => Promise<void>;
@@ -22,35 +20,52 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   role: null,
   roleLabel: null,
+  isTeacher: false,
   canEditAllTasks: false,
   loading: true,
   signOut: async () => {},
 });
-
-/** Derive role directly from email — no database call needed. */
-const roleFromEmail = (email: string | undefined): AppRole =>
-  email === ADMIN_EMAIL ? "admin" : "user";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchRole = async (userId: string): Promise<AppRole> => {
+    // Use security-definer function to avoid RLS recursion / extra reads
+    const { data: isTeach } = await supabase.rpc("is_teacher", { _user_id: userId });
+    return isTeach ? "teacher" : "student";
+  };
+
   useEffect(() => {
-    // Listen for auth state changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      setRole(session?.user ? roleFromEmail(session.user.email) : null);
-      setLoading(false);
+      if (session?.user) {
+        // Defer to avoid deadlock inside the auth callback
+        setTimeout(() => {
+          fetchRole(session.user.id).then((r) => {
+            setRole(r);
+            setLoading(false);
+          });
+        }, 0);
+      } else {
+        setRole(null);
+        setLoading(false);
+      }
     });
 
-    // Hydrate on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setRole(session?.user ? roleFromEmail(session.user.email) : null);
-      setLoading(false);
+      if (session?.user) {
+        fetchRole(session.user.id).then((r) => {
+          setRole(r);
+          setLoading(false);
+        });
+      } else {
+        setLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -62,10 +77,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setRole(null);
   };
 
-  const roleLabel: "Admin" | "Member" | null =
-    role === "admin" ? "Admin" : role === "user" ? "Member" : null;
+  const roleLabel: "Teacher" | "Student" | null =
+    role === "teacher" ? "Teacher" : role === "student" ? "Student" : null;
 
-  const canEditAllTasks = role === "admin";
+  const isTeacher = role === "teacher";
+  const canEditAllTasks = isTeacher;
 
   return (
     <AuthContext.Provider
@@ -74,6 +90,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user: session?.user ?? null,
         role,
         roleLabel,
+        isTeacher,
         canEditAllTasks,
         loading,
         signOut,
