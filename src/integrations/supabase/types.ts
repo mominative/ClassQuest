@@ -35,6 +35,36 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          link: string | null
+          message: string
+          read: boolean
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message: string
+          read?: boolean
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message?: string
+          read?: boolean
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           current_level: number | null
@@ -65,81 +95,58 @@ export type Database = {
         }
         Relationships: []
       }
-      Roles: {
-        Row: {
-          id: string
-          role_name: string
-        }
-        Insert: {
-          id?: string
-          role_name: string
-        }
-        Update: {
-          id?: string
-          role_name?: string
-        }
-        Relationships: []
-      }
       submissions: {
         Row: {
-          created_at: string | null
+          awarded_xp: number | null
+          created_at: string
+          feedback: string | null
           file_url: string | null
+          grade: number | null
+          grade_published: boolean
           id: string
-          status: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          submission_text: string | null
           task_id: string | null
-          user_id: string | null
+          updated_at: string
+          user_id: string
         }
         Insert: {
-          created_at?: string | null
+          awarded_xp?: number | null
+          created_at?: string
+          feedback?: string | null
           file_url?: string | null
+          grade?: number | null
+          grade_published?: boolean
           id?: string
-          status?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submission_text?: string | null
           task_id?: string | null
-          user_id?: string | null
+          updated_at?: string
+          user_id: string
         }
         Update: {
-          created_at?: string | null
+          awarded_xp?: number | null
+          created_at?: string
+          feedback?: string | null
           file_url?: string | null
+          grade?: number | null
+          grade_published?: boolean
           id?: string
-          status?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submission_text?: string | null
           task_id?: string | null
-          user_id?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "submissions_task_id_fkey"
-            columns: ["task_id"]
-            isOneToOne: false
-            referencedRelation: "Tasks"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      Submissions: {
-        Row: {
-          created_at: string | null
-          id: string
-          student_id: string | null
-          submission_text: string | null
-          task_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          student_id?: string | null
-          submission_text?: string | null
-          task_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          student_id?: string | null
-          submission_text?: string | null
-          task_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "Submissions_task_id_fkey"
             columns: ["task_id"]
             isOneToOne: false
             referencedRelation: "Tasks"
@@ -182,29 +189,24 @@ export type Database = {
       }
       user_roles: {
         Row: {
+          created_at: string
           id: string
-          role: string | null
-          user_id: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
         }
         Insert: {
+          created_at?: string
           id?: string
-          role?: string | null
-          user_id?: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
         }
         Update: {
+          created_at?: string
           id?: string
-          role?: string | null
-          user_id?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_roles_role_fkey"
-            columns: ["role"]
-            isOneToOne: false
-            referencedRelation: "Roles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
@@ -218,9 +220,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_teacher: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "user"
+      app_role: "admin" | "teacher" | "student"
       task_status: "todo" | "in_progress" | "done"
     }
     CompositeTypes: {
@@ -349,7 +352,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "user"],
+      app_role: ["admin", "teacher", "student"],
       task_status: ["todo", "in_progress", "done"],
     },
   },
