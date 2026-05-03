@@ -127,7 +127,7 @@ const TasksPage = () => {
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-4">
       <h1 className="text-2xl font-extrabold text-foreground">
-        {canEditAllTasks ? "All Tasks (Admin)" : "My Tasks"}
+        {canEditAllTasks ? "All Tasks (Teacher)" : "My Tasks"}
       </h1>
 
       {/* Add task */}

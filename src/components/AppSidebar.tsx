@@ -25,11 +25,10 @@ const navItems = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const { user, roleLabel, signOut } = useAuth();
+  const { user, roleLabel, isTeacher, signOut } = useAuth();
 
-  const isAdmin = roleLabel === "Admin";
-  const RoleIcon = isAdmin ? BookOpen : GraduationCap;
-  const displayLabel = roleLabel ?? "Member";
+  const RoleIcon = isTeacher ? BookOpen : GraduationCap;
+  const displayLabel = roleLabel ?? "Student";
 
   return (
     <Sidebar collapsible="icon">
@@ -45,17 +44,17 @@ export function AppSidebar() {
 
           {!collapsed && (
             <div className="mx-2 mb-3 flex items-center gap-2 rounded-lg bg-muted/60 px-3 py-2">
-              <RoleIcon size={15} className={isAdmin ? "text-streak" : "text-primary"} />
+              <RoleIcon size={15} className={isTeacher ? "text-streak" : "text-primary"} />
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold truncate text-foreground">{user?.email}</p>
-                <p className={`text-[10px] font-medium ${isAdmin ? "text-streak" : "text-primary"}`}>
+                <p className={`text-[10px] font-medium ${isTeacher ? "text-streak" : "text-primary"}`}>
                   {displayLabel}
                 </p>
               </div>
               <Badge
                 variant="outline"
                 className={`text-[10px] shrink-0 ${
-                  isAdmin
+                  isTeacher
                     ? "border-streak/40 text-streak bg-streak/10"
                     : "border-primary/40 text-primary bg-primary/10"
                 }`}
